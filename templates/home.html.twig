@@ -59,17 +59,52 @@
             // You can find caption animation demo on the captions demo page
             slideDelay: 400,
             dynamicEl: [
+                {% set i = 0 %}
                 {% for image in images %}
                 {
                     src: '{{ asset(image.directory) }}',
                     thumb: '{{ asset(image.directory) }}',
+                    index: {{ i }} ,
                 },
+                {% set i = i + 1 %}
                 {% endfor %}
             ],
         });
 
         // Since we are using dynamic mode, we need to programmatically open lightGallery
         inlineGallery.openGallery();
+
+
+        inlineGallery.outer.find('#lg-delete').on('click', () => {
+            let galleryItems = JSON.parse(
+                JSON.stringify(inlineGallery.galleryItems),
+            );
+
+            // Delete first item
+
+            if (galleryItems.length > 1){
+                let cur_index = parseInt($(".lg-current").children().children().attr("data-index"));
+                console.log(cur_index);
+                galleryItems.remove(cur_index);
+                inlineGallery.updateSlides(galleryItems, cur_index+1);
+            }
+            else {
+                inlineGallery.destroy();
+            }
+
+            // Pass the modified gallery items via updateSlides method
+            // the second parameter is the index of the slide
+            // to determine which slide lightGallery should navigate to after deleting current items
+
+
+            let slidesUpdated = false;
+        });
+
+        Array.prototype.remove = function(from, to) {
+            var rest = this.slice((to || from) + 1 || this.length);
+            this.length = from < 0 ? this.length + from : from;
+            return this.push.apply(this, rest);
+        };
     </script>
 
 {% endblock %}
