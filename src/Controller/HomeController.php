@@ -29,6 +29,9 @@ Class HomeController extends AbstractController
     {
         $uploaded_file = $request->files->get('image');
         $finfo = new finfo(FILEINFO_MIME_TYPE);
+        if (!$uploaded_file){
+            return $this->render('upload_fail.html.twig');
+        }
         if(array_search($finfo->file($uploaded_file),
                     array(
                     'jpg' => 'image/jpeg',
