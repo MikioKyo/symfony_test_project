@@ -1,0 +1,17 @@
+{# templates/lucky/home.html.twig #}
+{% extends 'base.html.twig' %}
+{% block title %}Галерея{% endblock %}
+{% block body %}
+    <div class="content">
+        <div class="container">
+            <h1 class="header">Тестовое задание с галереей</h1>
+            {% if is_granted('ROLE_ADMIN') %}
+                <span>Успешно добавлена новая картинка!</span>
+                <a href="/">Вернуться</a>
+            {% else %}
+                <a href="/login">Войти,</a> <span>чтобы редактировать галерею.</span>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

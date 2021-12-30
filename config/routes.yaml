@@ -1,0 +1,12 @@
+#index:
+#    path: /
+#    controller: App\Controller\DefaultController::index
+app_lucky_number:
+  path: /lucky/number
+  controller: App\Controller\LuckyController::number
+app_home:
+  path: /
+  controller: App\Controller\HomeController::home
+app_gallery_upload:
+  path: /upload
+  controller: App\Controller\HomeController::upload
