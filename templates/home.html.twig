@@ -13,7 +13,7 @@
                 <span>Вы залогинены.</span>
                 <a href="/logout">Выйти</a>
                 <form method="POST" action="{{ path('app_gallery_upload') }}" enctype="multipart/form-data">
-                    <input type="file" name="image" accept="image/*">
+                    <input type="file" name="image" accept="image/png,image/jpeg">
                     <button type="submit">Загрузить</button>
                 </form>
             {% else %}
@@ -22,6 +22,8 @@
             <!-- checking if we parsed images through and if we did, we create inline gallery -->
             {% if images %}
                 <div id="inline-gallery-container" class="inline-gallery-container"></div>
+            {% else %}
+                <span>Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.</span>
             {% endif %}
         </div>
     </div>

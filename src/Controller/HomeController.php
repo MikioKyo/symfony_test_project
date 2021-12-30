@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use finfo;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,18 +28,34 @@ Class HomeController extends AbstractController
     public function upload(Request $request, EntityManagerInterface $entityManager)
     {
         $uploaded_file = $request->files->get('image');
-        $destination = $this->getParameter('kernel.project_dir').'/public/gallery_uploads';
-        $newFileName = uniqid().'.'.$uploaded_file->guessExtension();
-        $uploaded_file->move(
-            $destination,
-            $newFileName,
-        );
-        $image = new Image();
-        $image->setDirectory('/gallery_uploads/'.$newFileName);
-        $datetime = new DateTime;
-        $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
-        $entityManager->persist($image);
-        $entityManager->flush();
-        return $this->render('upload.html.twig');
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        if(array_search($finfo->file($uploaded_file),
+                    array(
+                    'jpg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',),
+            true))
+        {
+            $destination = $this->getParameter('kernel.project_dir').'/public/gallery_uploads';
+            $newFileName = uniqid().'.'.$uploaded_file->guessExtension();
+            $uploaded_file->move(
+                $destination,
+                $newFileName,
+            );
+            $image = new Image();
+            $image->setDirectory('/gallery_uploads/'.$newFileName);
+            $datetime = new DateTime;
+            $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
+            $entityManager->persist($image);
+            $entityManager->flush();
+            return $this->render('upload_success.html.twig');
+        }
+        else
+        {
+            return $this->render('upload_fail.html.twig');
+        }
+
+
+
     }
 }
