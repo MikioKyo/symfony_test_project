@@ -21,7 +21,9 @@
             {% endif %}
             <!-- checking if we parsed images through and if we did, we create inline gallery -->
             {% if images %}
+                <span></span>
                 <div id="inline-gallery-container" class="inline-gallery-container"></div>
+
             {% else %}
                 <span>Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.</span>
             {% endif %}
@@ -87,7 +89,12 @@
                 if (galleryItems.length===2){
                     inlineGallery.updateSlides(galleryItems, 0);
                 }
-                inlineGallery.updateSlides(galleryItems, cur_index-1);
+                if (cur_index===0) {
+                    inlineGallery.updateSlides(galleryItems, cur_index+1);
+                }
+                else {
+                    inlineGallery.updateSlides(galleryItems, cur_index-1);
+                }
                 $.post('/delete', {imagesrc: imagesrc}, function(data){
                 });
             }
@@ -95,6 +102,7 @@
                 $.post('/delete', {imagesrc: galleryItems[0]['src']}, function(data){
                 });
                 inlineGallery.destroy();
+                $('span').text('Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.');
             }
         });
 
