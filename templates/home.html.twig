@@ -84,17 +84,14 @@
                 console.log(cur_index);
                 galleryItems.remove(cur_index);
                 inlineGallery.updateSlides(galleryItems, cur_index+1);
+                $.post('/delete', {imagesrc: galleryItems[cur_index]['src']}, function(data){
+                });
             }
             else {
+                $.post('/delete', {imagesrc: galleryItems[0]['src']}, function(data){
+                });
                 inlineGallery.destroy();
             }
-
-            // Pass the modified gallery items via updateSlides method
-            // the second parameter is the index of the slide
-            // to determine which slide lightGallery should navigate to after deleting current items
-
-
-            let slidesUpdated = false;
         });
 
         Array.prototype.remove = function(from, to) {

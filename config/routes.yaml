@@ -10,3 +10,6 @@ app_home:
 app_gallery_upload:
   path: /upload
   controller: App\Controller\HomeController::upload
+app_gallery_delete:
+  path: /delete
+  controller: App\Controller\HomeController::delete

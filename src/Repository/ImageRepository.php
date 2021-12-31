@@ -55,4 +55,14 @@ class ImageRepository extends ServiceEntityRepository
         );
         return $query->getResult();
     }
+
+    public function getImageIDFromDir(string $directory): array
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT u.id FROM App\Entity\Image u WHERE directory=:dir'
+        );
+        $query->setParameter('dir',$directory);
+        return $query->getResult();
+    }
 }

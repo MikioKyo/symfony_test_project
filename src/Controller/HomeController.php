@@ -57,8 +57,22 @@ Class HomeController extends AbstractController
         {
             return $this->render('upload_fail.html.twig');
         }
-
-
-
+    }
+    /*
+     * @Route("/delete",name="Upload")
+     */
+    public function delete(Request $request, EntityManagerInterface $entityManager, ManagerRegistry $doctrine)
+    {
+        if($request->isXmlHttpRequest()){
+            // доп проверка на то, чтобы сильно умные без логина вручную с помощью пост запроса не удалили картинки
+            if (in_array('ROLE_ADMIN', $this->getUser()->getRoles(), true)) {
+                $image = $doctrine->getRepository(Image::class)->findOneBy(['directory' => $_POST['imagesrc']]);
+                $entityManager->remove($image);
+                $entityManager->flush();
+                unlink($this->getParameter('kernel.project_dir') . '/public' . $_POST['imagesrc']);
+                echo 'File deleted.';
+                die();
+            }
+        }
     }
 }
