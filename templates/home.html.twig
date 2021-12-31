@@ -82,9 +82,13 @@
             if (galleryItems.length > 1){
                 let cur_index = parseInt($(".lg-current").children().children().attr("data-index"));
                 console.log(cur_index);
+                let imagesrc = galleryItems[cur_index]['src'];
                 galleryItems.remove(cur_index);
-                inlineGallery.updateSlides(galleryItems, cur_index+1);
-                $.post('/delete', {imagesrc: galleryItems[cur_index]['src']}, function(data){
+                if (galleryItems.length===2){
+                    inlineGallery.updateSlides(galleryItems, 0);
+                }
+                inlineGallery.updateSlides(galleryItems, cur_index-1);
+                $.post('/delete', {imagesrc: imagesrc}, function(data){
                 });
             }
             else {
