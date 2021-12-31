@@ -30,3 +30,20 @@ h1.header{
     height: 0;
     padding-bottom: 65%;
 }
+form {
+    display: grid;
+    justify-content: center;
+}
+
+.login {
+    padding: 8px;
+    border-radius: 15px;
+    min-width: 90px;
+    max-width: 150px;
+    margin: 10px auto;
+
+}
+
+label {
+    text-align: center;
+}
