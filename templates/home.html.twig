@@ -147,7 +147,7 @@
                         if ($('#inline-gallery-container').is(":hidden")){
                             $('#inline-gallery-container').toggle();
                         }
-                        inlineGallery.updateSlides(galleryItems, parseInt($(".lg-current").children().children().attr("data-index")));
+                        inlineGallery.updateSlides(galleryItems, galleryItems.length-1);
                     }
                     else{
                         if ($('#inline-gallery-container').is(":hidden")){
