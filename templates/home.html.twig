@@ -9,40 +9,56 @@
     <div class="content">
         <div class="container">
             <h1 class="header">Тестовое задание с галереей</h1>
+            <div style="display: block">
             {% if is_granted('ROLE_ADMIN') %}
                 <span>Вы залогинены.</span>
                 <a href="/logout">Выйти</a>
-                <form method="POST" action="{{ path('app_gallery_upload') }}" enctype="multipart/form-data">
-                    <input type="file" name="image" accept="image/png,image/jpeg">
-                    <button type="submit">Загрузить</button>
+                <!-- форма, для отправки фоток на сайт -->
+                <form method="POST" {% if images %} style="display: none" {% endif %} class="file-upload-form" action="{{ path('app_gallery_upload') }}" enctype="multipart/form-data">
+                    <input id="file-upload" type="file" name="image" accept="image/png,image/jpeg">
                 </form>
+
+
             {% else %}
                 <a href="/login">Войти,</a> <span>чтобы редактировать галерею.</span>
             {% endif %}
             <!-- checking if we parsed images through and if we did, we create inline gallery -->
+                <div id="inline-gallery-container" {% if not images %}style="display: none" {% endif %} class="inline-gallery-container"></div>
             {% if images %}
-                <span></span>
-                <div id="inline-gallery-container" class="inline-gallery-container"></div>
-
+                <span id="gallery-info"></span>
             {% else %}
-                <span>Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.</span>
+                <span id="gallery-info">Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.</span>
             {% endif %}
+            </div>
         </div>
     </div>
+
     <script type="text/javascript">
         const lgContainer = document.getElementById('inline-gallery-container');
-        //adding remove button but only if user is admin
+        let lgOpen = false;
+        const galleryItems = [
+            {% for image in images %}
+            {
+                src: '{{ asset(image.directory) }}',
+                thumb: '{{ asset(image.directory) }}',
+            },
+            {% endfor %}
+
+        ];
+        //adding remove and upload button but only if user is admin
         {% if is_granted('ROLE_ADMIN') %}
         lgContainer.addEventListener('lgInit', (event) => {
             let updateSlideInstance = event.detail.instance;
-           const deleteBtn =
+            const deleteBtn =
                 '<button type="button" aria-label="Remove slide" class="lg-icon" id="lg-delete"><img src="{{ asset('images/trash-can.png') }}"></button>';
+            const uploadBtn = '<label class="lg-icon" id="lg-upload" for="file-upload" style="cursor: pointer;"><img src="{{ asset('images/upload.png') }}"></label>';
             updateSlideInstance.outer.find('.lg-toolbar').append(deleteBtn);
+            updateSlideInstance.outer.find('.lg-toolbar').append(uploadBtn);
         });
+        lgContainer.addEventListener('lgAfterOpen', () => {
+            lgOpen = true;
+        })
         {% endif %}
-
-
-
         const inlineGallery = lightGallery(lgContainer, {
             container: lgContainer,
             dynamic: true,
@@ -60,32 +76,27 @@
             // before navigating to different slides (Optional)
             // You can find caption animation demo on the captions demo page
             slideDelay: 400,
-            dynamicEl: [
-                {% for image in images %}
-                {
-                    src: '{{ asset(image.directory) }}',
-                    thumb: '{{ asset(image.directory) }}',
-                },
-                {% endfor %}
-            ],
         });
+        if(galleryItems.length!==0){
+            // Since we are using dynamic mode, we need to programmatically open lightGallery
+            inlineGallery.refresh(galleryItems);
+            inlineGallery.openGallery(0);
+        }
+        else {
 
-        // Since we are using dynamic mode, we need to programmatically open lightGallery
-        inlineGallery.openGallery();
+        }
+
+
+
 
 
         inlineGallery.outer.find('#lg-delete').on('click', () => {
-            let galleryItems = JSON.parse(
-                JSON.stringify(inlineGallery.galleryItems),
-            );
-
             // Delete first item
-
             if (galleryItems.length > 1){
                 let cur_index = parseInt($(".lg-current").children().children().attr("data-index"));
-                console.log(cur_index);
                 let imagesrc = galleryItems[cur_index]['src'];
                 galleryItems.remove(cur_index);
+                inlineGallery.refresh(galleryItems);
                 if (galleryItems.length===2){
                     inlineGallery.updateSlides(galleryItems, 0);
                 }
@@ -101,16 +112,52 @@
             else {
                 $.post('/delete', {imagesrc: galleryItems[0]['src']}, function(data){
                 });
-                inlineGallery.destroy();
-                $('span').text('Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.');
+                initialized = false;
+                $('#gallery-info').text('Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.');
+                $('#file-upload').parent().attr('style','display: contents');
+                $('#inline-gallery-container').toggle();
             }
         });
 
+        $('#file-upload').on('change', () => {
+            let file = $('#file-upload').prop('files')[0];
+            let fd = new FormData;
+            if ($('.file-upload-form').is(":visible")){
+                $('.file-upload-form').toggle();
+            }
+            fd.append('img',file);
+            $.ajax({
+                url: '/upload',
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function (data) {
+                    galleryItems.push({src: data, thumb: data, __slideVideoInfo: undefined});
+                    inlineGallery.refresh(galleryItems);
+                    if(lgOpen){
+                        if ($('#inline-gallery-container').is(":hidden")){
+                            $('#inline-gallery-container').toggle();
+                        }
+                        inlineGallery.updateSlides(galleryItems, parseInt($(".lg-current").children().children().attr("data-index")));
+                    }
+                    else{
+                        if ($('#inline-gallery-container').is(":hidden")){
+                            $('#inline-gallery-container').toggle();
+                        }
+                        inlineGallery.openGallery();
+                    }
+                }
+            });
+        });
+
+        // функция, для удаления элемента массива по его айди
         Array.prototype.remove = function(from, to) {
             var rest = this.slice((to || from) + 1 || this.length);
             this.length = from < 0 ? this.length + from : from;
             return this.push.apply(this, rest);
         };
+
     </script>
 
 {% endblock %}

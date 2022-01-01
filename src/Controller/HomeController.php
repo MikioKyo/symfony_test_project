@@ -27,39 +27,41 @@ Class HomeController extends AbstractController
      */
     public function upload(Request $request, EntityManagerInterface $entityManager)
     {
-        $uploaded_file = $request->files->get('image');
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        if (!$uploaded_file){
-            return $this->render('upload_fail.html.twig');
-        }
-        if(array_search($finfo->file($uploaded_file),
-                    array(
+        if($request->isXmlHttpRequest()) {
+            $uploaded_file = $request->files->get('img');
+
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            if (!$uploaded_file) {
+                echo 'не вышло';
+                die();
+            }
+            if (array_search($finfo->file($uploaded_file),
+                array(
                     'jpg' => 'image/jpeg',
-                    'png' => 'image/png',
-                    'gif' => 'image/gif',),
-            true))
-        {
-            $destination = $this->getParameter('kernel.project_dir').'/public/gallery_uploads';
-            $newFileName = uniqid().'.'.$uploaded_file->guessExtension();
-            $uploaded_file->move(
-                $destination,
-                $newFileName,
-            );
-            $image = new Image();
-            $image->setDirectory('/gallery_uploads/'.$newFileName);
-            $datetime = new DateTime;
-            $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
-            $entityManager->persist($image);
-            $entityManager->flush();
-            return $this->render('upload_success.html.twig');
-        }
-        else
-        {
-            return $this->render('upload_fail.html.twig');
+                    'png' => 'image/png',),
+                true)) {
+                $destination = $this->getParameter('kernel.project_dir') . '/public/gallery_uploads';
+                $newFileName = uniqid() . '.' . $uploaded_file->guessExtension();
+                $uploaded_file->move(
+                    $destination,
+                    $newFileName,
+                );
+                $image = new Image();
+                $image->setDirectory('/gallery_uploads/' . $newFileName);
+                $datetime = new DateTime;
+                $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
+                $entityManager->persist($image);
+                $entityManager->flush();
+                echo $image->getDirectory();
+                die();
+            } else {
+                echo 'не вышло';
+                die();
+            }
         }
     }
     /*
-     * @Route("/delete",name="Upload")
+     * @Route("/delete",name="Delete")
      */
     public function delete(Request $request, EntityManagerInterface $entityManager, ManagerRegistry $doctrine)
     {
