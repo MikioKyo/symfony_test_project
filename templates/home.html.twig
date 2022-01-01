@@ -91,27 +91,34 @@
 
 
         inlineGallery.outer.find('#lg-delete').on('click', () => {
-            // Delete first item
+            // Delete current item
             if (galleryItems.length > 1){
                 let cur_index = parseInt($(".lg-current").children().children().attr("data-index"));
                 let imagesrc = galleryItems[cur_index]['src'];
-                galleryItems.remove(cur_index);
-                inlineGallery.refresh(galleryItems);
                 if (galleryItems.length===2){
+                    galleryItems.remove(cur_index);
+                    inlineGallery.refresh(galleryItems);
                     inlineGallery.updateSlides(galleryItems, 0);
                 }
-                if (cur_index===0) {
+                else if (cur_index===0) {
+                    galleryItems.remove(cur_index);
+                    inlineGallery.refresh(galleryItems);
                     inlineGallery.updateSlides(galleryItems, cur_index+1);
                 }
                 else {
+                    galleryItems.remove(cur_index);
+                    inlineGallery.refresh(galleryItems);
                     inlineGallery.updateSlides(galleryItems, cur_index-1);
                 }
                 $.post('/delete', {imagesrc: imagesrc}, function(data){
                 });
             }
             else {
+
                 $.post('/delete', {imagesrc: galleryItems[0]['src']}, function(data){
                 });
+                galleryItems.remove(0);
+                inlineGallery.refresh(galleryItems);
                 initialized = false;
                 $('#gallery-info').text('Сейчас галерея пуста! Добавьте файл, чтобы увидеть её.');
                 $('#file-upload').parent().attr('style','display: contents');
@@ -122,9 +129,6 @@
         $('#file-upload').on('change', () => {
             let file = $('#file-upload').prop('files')[0];
             let fd = new FormData;
-            if ($('.file-upload-form').is(":visible")){
-                $('.file-upload-form').toggle();
-            }
             fd.append('img',file);
             $.ajax({
                 url: '/upload',
@@ -133,6 +137,8 @@
                 contentType: false,
                 type: 'POST',
                 success: function (data) {
+                    $('.file-upload-form').attr('style','display: none');
+                    $('#gallery-info').text('');
                     galleryItems.push({src: data, thumb: data, __slideVideoInfo: undefined});
                     inlineGallery.refresh(galleryItems);
                     if(lgOpen){
