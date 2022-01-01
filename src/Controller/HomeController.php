@@ -28,35 +28,38 @@ Class HomeController extends AbstractController
     public function upload(Request $request, EntityManagerInterface $entityManager)
     {
         if($request->isXmlHttpRequest()) {
-            $uploaded_file = $request->files->get('img');
+            // доп проверка на то, чтобы сильно умные без логина вручную с помощью пост запроса не добавили картинки
+            if (in_array('ROLE_ADMIN', $this->getUser()->getRoles(), true)) {
+                $uploaded_file = $request->files->get('img');
 
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            if (!$uploaded_file) {
-                echo 'не вышло';
-                die();
-            }
-            if (array_search($finfo->file($uploaded_file),
-                array(
-                    'jpg' => 'image/jpeg',
-                    'png' => 'image/png',),
-                true)) {
-                $destination = $this->getParameter('kernel.project_dir') . '/public/gallery_uploads';
-                $newFileName = uniqid() . '.' . $uploaded_file->guessExtension();
-                $uploaded_file->move(
-                    $destination,
-                    $newFileName,
-                );
-                $image = new Image();
-                $image->setDirectory('/gallery_uploads/' . $newFileName);
-                $datetime = new DateTime;
-                $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
-                $entityManager->persist($image);
-                $entityManager->flush();
-                echo $image->getDirectory();
-                die();
-            } else {
-                echo 'не вышло';
-                die();
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                if (!$uploaded_file) {
+                    echo 'не вышло';
+                    die();
+                }
+                if (array_search($finfo->file($uploaded_file),
+                    array(
+                        'jpg' => 'image/jpeg',
+                        'png' => 'image/png',),
+                    true)) {
+                    $destination = $this->getParameter('kernel.project_dir') . '/public/gallery_uploads';
+                    $newFileName = uniqid() . '.' . $uploaded_file->guessExtension();
+                    $uploaded_file->move(
+                        $destination,
+                        $newFileName,
+                    );
+                    $image = new Image();
+                    $image->setDirectory('/gallery_uploads/' . $newFileName);
+                    $datetime = new DateTime;
+                    $image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
+                    $entityManager->persist($image);
+                    $entityManager->flush();
+                    echo $image->getDirectory();
+                    die();
+                } else {
+                    echo 'не вышло';
+                    die();
+                }
             }
         }
     }
@@ -74,6 +77,49 @@ Class HomeController extends AbstractController
                 unlink($this->getParameter('kernel.project_dir') . '/public' . $_POST['imagesrc']);
                 echo 'File deleted.';
                 die();
+            }
+        }
+    }
+    /*
+     * @Route("/update",name="Update")
+     */
+    public function update(Request $request, EntityManagerInterface $entityManager, ManagerRegistry $doctrine)
+    {
+        if($request->isXmlHttpRequest()) {
+            // доп проверка на то, чтобы сильно умные без логина вручную с помощью пост запроса не удалили картинки
+            if (in_array('ROLE_ADMIN', $this->getUser()->getRoles(), true)) {
+                $uploaded_file = $request->files->get('img');
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                if (!$uploaded_file) {
+                    echo 'не вышло';
+                    die();
+                }
+                if (array_search($finfo->file($uploaded_file),
+                    array(
+                        'jpg' => 'image/jpeg',
+                        'png' => 'image/png',),
+                    true)) {
+                    $destination = $this->getParameter('kernel.project_dir') . '/public/gallery_uploads';
+                    $newFileName = uniqid() . '.' . $uploaded_file->guessExtension();
+                    $uploaded_file->move(
+                        $destination,
+                        $newFileName,
+                    );
+                    $old_image = $doctrine->getRepository(Image::class)->findOneBy(['directory' => $_POST['img_src']]);
+                    $new_image = new Image();
+                    $new_image->setDirectory('/gallery_uploads/'.$newFileName);
+                    $datetime = new DateTime;
+                    $new_image->setAddedAt(DateTimeImmutable::createFromMutable($datetime));
+                    $entityManager->persist($new_image);
+                    $entityManager->remove($old_image);
+                    $entityManager->flush();
+                    unlink($this->getParameter('kernel.project_dir') . '/public' . $old_image->getDirectory());
+                    echo $new_image->getDirectory();
+                    die();
+                } else {
+                    echo 'не вышло';
+                    die();
+                }
             }
         }
     }

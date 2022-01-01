@@ -13,3 +13,6 @@ app_gallery_upload:
 app_gallery_delete:
   path: /delete
   controller: App\Controller\HomeController::delete
+app_gallery_update:
+  path: /update
+  controller: App\Controller\HomeController::update

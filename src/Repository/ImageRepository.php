@@ -60,7 +60,7 @@ class ImageRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT u.id FROM App\Entity\Image u WHERE directory=:dir'
+            'SELECT u.id FROM App\Entity\Image u WHERE directory=:dir ORDER BY u.id'
         );
         $query->setParameter('dir',$directory);
         return $query->getResult();

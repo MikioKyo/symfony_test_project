@@ -17,7 +17,11 @@
                 <form method="POST" {% if images %} style="display: none" {% endif %} class="file-upload-form" action="{{ path('app_gallery_upload') }}" enctype="multipart/form-data">
                     <input id="file-upload" type="file" name="image" accept="image/png,image/jpeg">
                 </form>
-
+                <!-- форма, для изменения фоток на сайте -->
+                <form method="POST" style="display: none" class="file-update-form" action="{{ path('app_gallery_update') }}" enctype="multipart/form-data">
+                    <input id="file-update" type="file" name="image" accept="image/png,image/jpeg">
+                    <input id="file-update-name" type="text" name="image_filename">
+                </form>
 
             {% else %}
                 <a href="/login">Войти,</a> <span>чтобы редактировать галерею.</span>
@@ -52,8 +56,10 @@
             const deleteBtn =
                 '<button type="button" aria-label="Remove slide" class="lg-icon" id="lg-delete"><img src="{{ asset('images/trash-can.png') }}"></button>';
             const uploadBtn = '<label class="lg-icon" id="lg-upload" for="file-upload" style="cursor: pointer;"><img src="{{ asset('images/upload.png') }}"></label>';
+            const updateBtn = '<label class="lg-icon" id="lg-update" for="file-update" style="cursor: pointer;"><img src="{{ asset('images/update.png') }}"></label>';
             updateSlideInstance.outer.find('.lg-toolbar').append(deleteBtn);
             updateSlideInstance.outer.find('.lg-toolbar').append(uploadBtn);
+            updateSlideInstance.outer.find('.lg-toolbar').append(updateBtn);
         });
         lgContainer.addEventListener('lgAfterOpen', () => {
             lgOpen = true;
@@ -95,21 +101,17 @@
             if (galleryItems.length > 1){
                 let cur_index = parseInt($(".lg-current").children().children().attr("data-index"));
                 let imagesrc = galleryItems[cur_index]['src'];
-                if (galleryItems.length===2){
-                    galleryItems.remove(cur_index);
-                    inlineGallery.refresh(galleryItems);
-                    inlineGallery.updateSlides(galleryItems, 0);
-                }
-                else if (cur_index===0) {
-                    galleryItems.remove(cur_index);
-                    inlineGallery.refresh(galleryItems);
-                    inlineGallery.updateSlides(galleryItems, cur_index+1);
-                }
-                else {
+                if (cur_index===galleryItems.length-1) {
                     galleryItems.remove(cur_index);
                     inlineGallery.refresh(galleryItems);
                     inlineGallery.updateSlides(galleryItems, cur_index-1);
                 }
+                else {
+                    galleryItems.remove(cur_index);
+                    inlineGallery.refresh(galleryItems);
+                    inlineGallery.updateSlides(galleryItems, cur_index);
+                }
+
                 $.post('/delete', {imagesrc: imagesrc}, function(data){
                 });
             }
@@ -156,7 +158,27 @@
                 }
             });
         });
-
+        $('#file-update').on('change', () => {
+            console.log(galleryItems);
+            let file = $('#file-update').prop('files')[0];
+            let file_name = $(".lg-current").children().eq(0).children().eq(0).attr("src");
+            let fd = new FormData;
+            fd.append('img',file);
+            fd.append('img_src', file_name);
+            $.ajax({
+                url: '/update',
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function (data) {
+                    let curr_index = parseInt($(".lg-current").children().children().attr("data-index"));
+                    galleryItems[curr_index] = {src: data, thumb: data, __slideVideoInfo: undefined};
+                    inlineGallery.updateSlides(galleryItems, curr_index);
+                    console.log(galleryItems);
+                }
+            });
+        });
         // функция, для удаления элемента массива по его айди
         Array.prototype.remove = function(from, to) {
             var rest = this.slice((to || from) + 1 || this.length);
