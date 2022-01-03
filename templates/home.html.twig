@@ -24,7 +24,7 @@
                 </form>
 
             {% else %}
-                <a href="/login">Войти,</a> <span>чтобы редактировать галерею.</span>
+                <a href="{{ path('app_login') }}">Войдите,</a> или <a href="{{ path('app_register') }}">зарегистрируйтесь</a> <span>чтобы редактировать галерею.</span>
             {% endif %}
             <!-- checking if we parsed images through and if we did, we create inline gallery -->
                 <div id="inline-gallery-container" {% if not images %}style="display: none" {% endif %} class="inline-gallery-container"></div>
